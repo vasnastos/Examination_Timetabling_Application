@@ -1,11 +1,15 @@
 #include "parameters.hpp"
+#include <bits/stdc++.h>
 
 class Solution:public Graph{
     protected:
         std::map <int,std::vector <int>> periods;
         std::vector <pmove> stats;
+        std::set <int> fixed_exams;
+        std::map <int,std::vector <int>> ident_period_exams;
         int move_executed;
-
+        int thermal_periods;
+        decltype(clock()) start_timer;
         int pdelta(int exam,int period)
         {
             int lb=period-5>0?period-5:0;
@@ -42,6 +46,7 @@ class Solution:public Graph{
             while(true)
             {
                 exam=this->non_zero_neighbors_exams.at(exam_chooser(mt));
+                if(this->fixed_exams.find(exam)!=this->fixed_exams.end()) continue;
                 for(auto &n:this->neighbors[exam])
                 {
                     if(abs(this->s_periods[exam]-this->s_periods[n])<=5)
@@ -110,6 +115,16 @@ class Solution:public Graph{
                 this->stats.emplace_back(pmove(i));
             }
         }
+
+        void set_fixed_exams(std::set <int> &exams)
+        {
+            this->fixed_exams=exams;
+        }
+
+        void add_fixed_exam(int exam)
+        {
+            this->fixed_exams.insert(exam);
+        }
         
         int pre_calculation(int exam,int period)
         {
@@ -144,54 +159,22 @@ class Solution:public Graph{
             }
             return cs;
         }
-        
-        int me_pre_calculation(int exam,int period,std::map <int,int> &include)
-        {
-            int cs=0;
-            int distance,distance_before,old_period,neighbor_state;
-            old_period=include.find(exam)!=include.end()?include[exam]:this->s_periods[exam];
-            for(auto &node:this->neighbors[exam])
-            {
-                neighbor_state=include.find(node)!=include.end()?include[node]:this->s_periods[node];
-                distance=period-neighbor_state;
-                distance_before=old_period-neighbor_state;
-                if(distance==distance_before)
-                {
-                    continue;
-                }
-                cs-=this->adj_table[exam][node] * Graph::penalty[distance_before];
-                cs+=this->adj_table[exam][node] * Graph::penalty[distance];
-            }
-            return cs;
-        }
 
-        int me_pre_calculation(int exam,int period,std::map <int,int> &include,std::map <int,int> &cached)
+        int pre_calculation(int exam,int period,std::map <int,int> &previous_made_moves,std::map <int,int> &cached)
         {
-            int cs=0;
-            int distance,distance_before,old_period,neighbor_state;
-            old_period=include.find(exam)!=include.end()?include[exam]:this->s_periods[exam];
+            int cs=0,nnstate;
+            int old_state=previous_made_moves.find(exam)!=previous_made_moves.end()?previous_made_moves[exam]:this->s_periods[exam];
+            int distance,distance_old;
             for(auto &neighbor:this->neighbors[exam])
             {
-                neighbor_state=cached.find(neighbor)!=cached.end()?cached[neighbor]:include.find(neighbor)!=include.end()?include[neighbor]:this->s_periods[neighbor];
-                distance=abs(period-neighbor_state);
-                distance_before=abs(old_period-neighbor_state);
-                if(distance==distance_before) continue;
-                cs-=this->adj_table[exam][neighbor] * Graph::penalty[distance_before];
-                cs+=this->adj_table[exam][neighbor] * Graph::penalty[distance];
+                nnstate=cached.find(exam)!=cached.end()?cached[exam]:previous_made_moves.find(exam)!=previous_made_moves.end()?previous_made_moves[exam]:this->s_periods[exam];
+                distance_old=abs(old_state-nnstate);
+                distance=abs(period-nnstate);
+                if(distance_old==distance) continue;
+                cs-=Graph::penalty[distance_old] * this->adj_table[exam][neighbor];
+                cs+=Graph::penalty[distance] * this->adj_table[exam][neighbor];
             }
             return cs;
-        }
-
-        int ej_pre_reposition(std::map <int,int> &pmoves,std::map <int,int> &include)
-        {
-            int cc=0;
-            std::map <int,int> cache;
-            for(auto &mid:pmoves)
-            {
-                cc+=this->me_pre_calculation(mid.first,mid.second,include,cache);
-                cache[mid.first]=mid.second;
-            }
-            return cc;
         }
 
         int pre_reposition(std::map <int,int> &moves)
@@ -201,6 +184,18 @@ class Solution:public Graph{
             for(auto &mid:moves){
                 cs+=this->pre_calculation(mid.first,mid.second,cached_moves);
                 cached_moves[mid.first]=mid.second;
+            }
+            return cs;
+        }
+
+        int pre_reposition(std::map <int,int> &moves,std::map <int,int> &previous_moves_made)
+        {
+            std::map <int,int> cached;
+            int cs=0;
+            for(auto &move:moves)
+            {
+                cs=this->pre_calculation(move.first,move.second,previous_moves_made,cached);
+                cached.insert(move);
             }
             return cs;
         }
@@ -231,6 +226,7 @@ class Solution:public Graph{
                 this->reposition(mid.first,mid.second);
             }
         }
+
         // Old version Schedule_unschedule
         // void schedule(int exam,int p){
         //     this->s_periods[exam]=p;
@@ -245,9 +241,11 @@ class Solution:public Graph{
         //     this->cost-=this->neighbors_delta(exam,op);
         // }
 
+
+
         std::map <int,int> select_move()
         {
-            std::uniform_int_distribution<int> r(1,8);
+            std::uniform_int_distribution<int> r(1,10);
             int exam=this->random_exam();
             switch(r(mt))
             {
@@ -275,6 +273,11 @@ class Solution:public Graph{
                 case 8:
                     return this->round_kick_exam(exam);
                     break;
+                case 9:
+                    return this->move_exam_extend(exam);
+                    break;
+                case 10:
+                    return this->double_kempe_chain(exam);
                 default:
                     return std::map <int,int>();
                     break;
@@ -308,6 +311,15 @@ class Solution:public Graph{
                     break;
                 case 8:
                     return this->round_kick_exam(exam);
+                    break;
+                case 9:
+                    return this->move_exam_extend(exam);
+                    break;
+                case 10:
+                    return this->double_kick_exam(exam);
+                    break;
+                case 11:
+                    return this->depth_moves();
                     break;
                 default:
                     return std::map <int,int>();
@@ -554,7 +566,184 @@ class Solution:public Graph{
             return std::map <int,int>();
         }
 
-        void eject_vertices()
+        std::map <int,int> move_exam_extend(int exam)
+        {
+            this->move_executed=8;
+            auto random_period=std::uniform_int_distribution<int>(0,this->P-1);
+            const int period_selector=this->s_periods[exam];
+            auto exam_selector=std::uniform_int_distribution<int>(0,this->periods[period_selector].size()-1);
+            int exam1=exam;
+            int exam2=this->periods[period_selector].at(exam_selector(mt));
+            while(this->fixed_exams.find(exam1)!=this->fixed_exams.end())
+            {
+                exam1=this->periods[period_selector].at(exam_selector(mt));
+            }
+            while(exam2==exam1 || this->fixed_exams.find(exam2)!=this->fixed_exams.end())
+            {
+                exam2=this->periods[period_selector].at(exam_selector(mt));
+            }
+            int min_cost_contribution_exam1=INT_MAX;
+            int min_cost_contribution_exam2=INT_MAX;
+            int cs;
+            std::map <int,int> moves;
+            int period_exam1=this->s_periods[exam1];
+            int period_exam2=this->s_periods[exam2];
+            std::pair <int,int> moves_exam1;
+            std::pair <int,int> moves_exam2;
+            for(auto &neighbor:this->neighbors[exam1])
+            {
+                cs=this->pre_calculation(neighbor,period_exam1);
+                if(this->can_be_moved(neighbor,period_exam1,{exam1}))
+                {
+                    if(cs<min_cost_contribution_exam1)
+                    {
+                        min_cost_contribution_exam1=cs;
+                        moves_exam1={neighbor,period_exam1};
+                    }
+                }
+            }
+            if(moves_exam1==std::pair<int,int>() || moves_exam2==std::pair<int,int>()) return std::map <int,int>();
+            for(auto &neighbor:this->neighbors[exam2])
+            {
+                cs=this->pre_calculation(neighbor,period_exam2);
+                if(this->can_be_moved(neighbor,period_exam2,{exam2}))
+                {
+                    if(cs<min_cost_contribution_exam2)
+                    {
+                        min_cost_contribution_exam2=cs;
+                        moves_exam2={neighbor,period_exam2};
+                    }
+                }
+            }
+            if(moves_exam1.first==moves_exam2.first)
+            {
+                if(min_cost_contribution_exam1<=min_cost_contribution_exam2)
+                {
+                    moves.insert(moves_exam1);
+                }
+                else
+                {
+                    moves.insert(moves_exam2);
+                }
+            }
+            else{
+                moves.insert(moves_exam1);
+                moves.insert(moves_exam2);
+            }
+            std::map <int,int> me;
+            min_cost_contribution_exam1=min_cost_contribution_exam2=INT_MAX;
+            for(int p=0;p<this->P;p++)
+            {
+                me=moves;
+                if(this->can_be_moved(exam1,p,moves))
+                {
+                    me[exam1]=p;
+                    cs=this->pre_reposition(me);
+                    if(cs<min_cost_contribution_exam1)
+                    {
+                        min_cost_contribution_exam1=cs;
+                        moves_exam1={exam1,p};
+                    }
+                }
+                if(this->can_be_moved(exam2,p,moves))
+                {
+                    me=moves;
+                    me[exam2]=p;
+                    cs=this->pre_reposition(me);
+                    if(cs<min_cost_contribution_exam2)
+                    {
+                        min_cost_contribution_exam2=cs;
+                        moves_exam2={exam2,p};
+                    }
+                }
+            }
+            moves.insert(moves_exam1);
+            moves.insert(moves_exam2);
+            return moves;
+        }
+
+        std::map <int,int> double_kempe_chain(int exam)
+        {
+            this->move_executed=9;
+            int exam1=exam;
+            auto neighbor_selector=std::uniform_int_distribution<int>(0,this->neighbors[exam1].size()-1);
+            int exam2=this->neighbors[exam1].at(neighbor_selector(mt));
+            int c1,c2,c3,c4;
+            c1=this->s_periods[exam1];
+            c2=this->s_periods[exam2];
+            int exam3,exam4;
+            std::set <int> occurences;
+            while(true)
+            {
+                exam3=this->random_exam();
+                c3=this->s_periods[exam3];
+                if(c3==c1 or c3==c2) continue;
+                break;
+            }
+            neighbor_selector=std::uniform_int_distribution<int>(0,this->neighbors[exam3].size()-1);
+            while(true)
+            {
+                exam4=this->neighbors[exam3].at(neighbor_selector(mt));
+                c4=this->s_periods[exam4];
+                occurences.insert(exam4);
+                if(occurences.size()==this->neighbors[exam3].size()) return std::map <int,int>();
+                if(c4==c1 || c4==c2) continue;
+                break;
+            }
+            std::stack <int> backlog;
+            int current_exam,current_period,new_period;
+            backlog.push(exam1);
+            std::map <int,int> versus_period={
+                {c1,c2},
+                {c2,c1}
+            };
+            std::map <int,int> moves;
+            while(!backlog.empty())
+            {
+                current_exam=backlog.top();
+                backlog.pop();
+                current_period=this->s_periods[current_exam];
+                new_period=versus_period[current_period];
+                moves[current_exam]=new_period;
+                for(auto &neighbor:this->neighbors[current_exam])
+                {
+                    if(moves.find(neighbor)!=moves.end()) continue;
+                    if(this->s_periods[neighbor]==new_period)
+                    {
+                        backlog.push(neighbor);
+                    }
+                }
+            }
+
+            versus_period={
+                {c3,c4},
+                {c4,c3}
+            };
+            backlog=std::stack<int>();
+            backlog.push(exam3);
+            while(!backlog.empty())
+            {
+                current_exam=backlog.top();
+                backlog.pop();
+                current_period=this->s_periods[current_exam];
+                new_period=versus_period[current_period];
+                moves[current_exam]=new_period;
+                for(auto &neighbor:this->neighbors[current_exam])
+                {
+                    if(moves.find(neighbor)!=moves.end())
+                    {
+                        continue;
+                    }
+                    if(this->s_periods[neighbor]==new_period)
+                    {
+                        backlog.push(neighbor);
+                    }
+                }
+            }
+            return moves;
+        }
+
+        void eject_vertices(int &best,std::map <int,int> &best_sol)
         {
             auto ut=std::uniform_real_distribution <double>(0.75,1.0);
             std::vector <std::pair <int,int>> wedges; 
@@ -632,7 +821,7 @@ class Solution:public Graph{
                         }
                     }
                 }
-                if(mv.size()!=0)
+                if(mv.size()!=0 && this->cost+this->pre_reposition(mv)<best)
                 {
                     this->reposition(mv);
                     int texam;
@@ -641,10 +830,65 @@ class Solution:public Graph{
                         texam=(mid.first==ed.first?ed.second:ed.first);
                         std::cout<<"Ejecting exam|Exam Eject->"<<mid.first<<"->Period:"<<mid.second<<"|Second exam particapate->"<<texam<<"=>P:"<<this->s_periods[texam]<<std::endl;
                     }
+                    best=this->cost;
+                    best_sol=this->s_periods;
                 }
             }
         }
+        
+        void multimove_storage_adder(omp_lock_t &t,std::map <int,std::pair <int,std::map <int,int>>> &move_saver,int move_id,int exam)
+        {
+            omp_set_lock(&t);
+            std::map <int,int> moves_will_be_made=this->select_move(move_id,exam);
+            int cs=this->pre_reposition(moves_will_be_made);
+            std::pair <int,std::map <int,int>> move_pair(cs,moves_will_be_made);
+            move_saver[move_id]=move_pair;
+            omp_unset_lock(&t);
+        }
 
+        std::map <int,int> depth_moves()
+        {
+            this->move_executed=10;
+            std::map <int,int> moves;
+            auto time_now=(clock()-this->start_timer)/CLOCKS_PER_SEC;
+            int depth=static_cast<int>(ceil(double(time_now)/this->thermal_periods));
+            int cost_simulation=this->cost;
+            std::map <int,int> moves_simulation;
+            int i_depth=0;
+            omp_lock_t l;
+            omp_init_lock(&l);
+            int exam,min_cost,move_cost;
+            while(i_depth<depth)
+            {
+                exam=this->random_exam();
+                std::map <int,std::pair <int,std::map <int,int>>> moves_will_be_tested;
+                #pragma omp parallel for
+                for(int i=1;i<=10;i++)
+                {
+                    this->multimove_storage_adder(l,moves_will_be_tested,i,exam);
+                }
+                #pragma omp barrier
+                min_cost=cost_simulation;
+                std::map <int,int>  round_low_cost_moves;
+                for(auto &move_id:moves_will_be_tested)
+                {
+                    move_cost=cost_simulation+move_id.second.first;
+                    if(move_cost<min_cost)
+                    {
+                        min_cost=move_cost;
+                        round_low_cost_moves=move_id.second.second;
+                    }
+                }
+                for(auto &mid:round_low_cost_moves)
+                {
+                    moves_simulation[mid.first]=mid.second;
+                }
+                cost_simulation=min_cost;
+                i_depth++;
+            }
+            omp_destroy_lock(&l);
+            return moves_simulation;
+        }
 
         // Higher factoring nodes optimizing
         // ------------------------------------
@@ -748,7 +992,7 @@ class Solution:public Graph{
         {
             omp_lock_t lock;
             omp_init_lock(&lock);
-            int acceptance_rate=random::accept_rate()*this->average_node_factor;
+            int acceptance_rate=random_terms::accept_rate()*this->average_node_factor;
             std::vector <int> exams;
             for(auto &node:this->nodes)
             {
@@ -845,7 +1089,7 @@ class Solution:public Graph{
 
         bool pwork(int exec_seconds,int &best,std::map <int,int> &bsol,int &move_counter)
         {
-            this->move_executed=8;
+            this->move_executed=11;
             move_counter=1;
             int starting_best_point=best;
             auto st=clock();
@@ -875,7 +1119,7 @@ class Solution:public Graph{
         
         void polish(int exec_time,int &best,std::map <int,int> &bsol)
         {
-            this->move_executed=9;
+            this->move_executed=12;
             int mcost,delta;
             int best_exam_contribution;
             std::map <int,int> moves;
@@ -1114,6 +1358,64 @@ class Solution:public Graph{
                 {
                     break;
                 }
+                std::shuffle(this->non_zero_neighbors_exams.begin(),this->non_zero_neighbors_exams.end(),std::default_random_engine{});
+                int period3;
+                for(auto &exam:this->non_zero_neighbors_exams)
+                {
+                    best_exam_contribution=this->cost;
+                    best_moves=std::map<int,int>();
+                    for(auto &exam2:this->neighbors[exam])
+                    {
+                        period1=this->s_periods[exam2];
+                        if(this->can_be_moved(exam,period1,{exam2}))
+                        {
+                            for(auto &exam3:this->neighbors[exam2])
+                            {
+                                period2=this->s_periods[exam3];
+                                if(this->can_be_moved(exam2,period2,{exam3}))
+                                {
+                                    for(int p=0;p<this->P;p++)
+                                    {
+                                        if(p==period2 || p==period1 || p==this->s_periods[exam])
+                                        {
+                                            continue;
+                                        }
+                                        if(this->can_be_moved(exam3,p))
+                                        {
+                                            moves={
+                                                {exam,period1},
+                                                {exam2,period2},
+                                                {exam3,p}
+                                            };
+                                            mcost=this->cost+this->pre_reposition(moves);
+                                            if(mcost<best_exam_contribution)
+                                            {
+                                                best_moves=moves;
+                                                best_exam_contribution=mcost;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if(!best_moves.empty())
+                    {
+                        std::cout<<"Polish DKE|New best Solution found:"<<best<<"{"<<std::endl;
+                        start=true;
+                        for(auto &mid:moves)
+                        {
+                            if(start)
+                            {
+                                start=false;
+                                std::cout<<"("<<mid.first<<"->"<<mid.second<<")";
+                                continue;
+                            }
+                            std::cout<<",("<<mid.first<<"->"<<mid.second<<")"<<std::endl;
+                            
+                        }
+                    }
+                }
             }
         }
 
@@ -1143,6 +1445,7 @@ class Solution:public Graph{
                             int delta=mcost-this->cost;
                             this->reposition(moves);
                             best=this->cost;
+                            best_sol=this->s_periods;
                             std::cout<<"Permuting Periods|New best Solution S="<<best<<" Moves="<<moves.size()<<"|D="<<(delta<0?"(-)":"(+)")<<abs(delta)<<std::endl;
                         }
                     }
@@ -1162,7 +1465,7 @@ class Solution:public Graph{
 
         void add_occurence(bool is_null=false)
         {
-            is_null?this->stats[this->move_executed]--:this->stats[this->move_executed]++;
+            is_null?this->stats[this->move_executed-1]--:this->stats[this->move_executed-1]++;
         }
 };
 
@@ -1260,10 +1563,21 @@ class simulated_annealer:public Solution
     public:
         simulated_annealer(problem &p,int es):Solution(p),execution_time(es),move_counter(0)
         {
-
+            this->thermal_periods=this->execution_time/this->P;
         }
 
-        void set_time(int es) {this->execution_time=es;}
+        void set_time(int es) {this->execution_time=es; this->thermal_periods=this->execution_time/this->P;}
+
+        void pre_work_optimization(int &best,std::map <int,int> &bsol)
+        {
+            std::cout.precision(6);
+            std::cout<<"========== Start With Period permutation ============"<<std::endl;
+            this->permute_periods(best,bsol);
+            std::cout<<"====================================================="<<std::endl<<std::endl;
+            std::cout<<"==================== Eject high cost Vertices ==================="<<std::endl;
+            this->eject_vertices(best,bsol);
+            std::cout<<"================================================================="<<std::endl;
+        }
 
         void solve()
         {
@@ -1282,12 +1596,9 @@ class simulated_annealer:public Solution
             int reheat_counter=REHEAT_ITERATIONS;
             bool bsol=false;
             logger log{LOG_INFO};
-            std::cout.precision(6);
-            std::cout<<"========== Start With Period permutation ============"<<std::endl;
-            this->permute_periods(best,best_sol);
-            std::cout<<"====================================================="<<std::endl<<std::endl;
-            this->eject_vertices();
+            this->pre_work_optimization(best,best_sol);
             auto stime=clock();
+            this->start_timer=clock();
             while(true)
             {
                 std::map <int,int> moves=this->select_move();
@@ -1320,7 +1631,7 @@ class simulated_annealer:public Solution
                 {
                     last_improvement_counter++;
                     acceptance_propability=exp(-delta/temperature);
-                    if(acceptance_propability>random::random_normalized())
+                    if(acceptance_propability>random_terms::random_normalized())
                     {
                         this->reposition(moves);
                         log.debug("Worse Solution has been accepted with cost S="+std::to_string(this->cost));
@@ -1342,7 +1653,6 @@ class simulated_annealer:public Solution
                 {
                     int mc=0;
                     bool fbest=this->pwork(this->execution_time/this->P,best,best_sol,mc);
-                    this->move_executed=9;
                     last_improvement_counter=0;
                     this->add_occurence(fbest);
                     if(fbest)
@@ -1353,9 +1663,11 @@ class simulated_annealer:public Solution
                     }
                     else
                     {
-                        temperature/=random::temp_derived();
+                        temperature/=random_terms::temp_derived();
+                        int previous_best=best;
                         this->polish(this->execution_time/this->P,best,best_sol);
-                        log.info("No improvement made|Temperature derived T="+std::to_string(temperature)+TEMP_SIGN);
+                        this->move_executed=11;
+                        this->add_occurence(best!=previous_best);
                     }
                 }
                 if(temperature<freeze_temp)
@@ -1377,7 +1689,7 @@ class simulated_annealer:public Solution
                     else
                        plateu++;
                     reheat_counter=REHEAT_ITERATIONS;
-                    temperature=start_temp*random::normalized_temp()/round;
+                    temperature=start_temp*random_terms::normalized_temp()/round;
                     round++;
                     last_improvement_counter=0;
                     log.info("Simulated Annealing|New round started==>T="+std::to_string(temperature)+TEMP_SIGN+" R="+std::to_string(round));
@@ -1393,7 +1705,7 @@ class simulated_annealer:public Solution
                     log.info("After 20 rounds no optimization made!!Exit Annealing process");
                     break;
                 }
-                auto etime=clock()-stime;
+                auto etime=clock()-this->start_timer;
                 if(etime/CLOCKS_PER_SEC>this->execution_time)
                 {
                     break;

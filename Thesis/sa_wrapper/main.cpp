@@ -1,4 +1,5 @@
 #include "Solution.cpp"
+#include <iostream>
 
 void Scenario_1()
 {
@@ -32,8 +33,8 @@ void menu()
     int v;
     std::cout<<"Select Scenario::"<<std::endl;
     std::cout<<"-------------"<<std::endl;
-    std::cout<<"1.Hill Climbing--Ds:lse91"<<std::endl;
-    std::cout<<"2.Simulated Annealing--DS:lse91"<<std::endl;
+    std::cout<<"1.Hill Climbing"<<std::endl;
+    std::cout<<"2.Simulated Annealing"<<std::endl;
     std::cout<<"Select:";
     std::cin>>v;
     switch(v)
@@ -56,4 +57,6 @@ int main(int argc,char **argv)
 {
     menu();
     return EXIT_SUCCESS;
+    // std::cout<<get_computer_name()<<std::endl;
+    // std::cout<<get_username()<<std::endl;
 }
