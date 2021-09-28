@@ -1,0 +1,15 @@
+problem    significant components
+---------  -------------------------------------------------------------
+car92      [component_1:540,component_2:2]
+car91      [component_1:675,component_5:3]
+ear83      [component_1:190]
+hec92      [component_1:81]
+kfu93      [component_1:435,component_8:2,component_13:5,component_15:2]
+lse91      [component_1:379]
+pur93      [component_1:2407,component_3:4,component_9:2]
+rye93      [component_1:485]
+sta83      [component_1:30,component_2:47,component_3:62]
+tre92      [component_1:260]
+uta92      [component_1:622]
+ute92      [component_1:177,component_2:7]
+yor83      [component_1:181]

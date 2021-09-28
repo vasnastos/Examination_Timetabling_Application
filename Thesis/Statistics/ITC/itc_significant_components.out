@@ -1,0 +1,73 @@
+problem     significant components
+
+ITC2007_1   component_1:601,component_2:3,component_3:3
+
+ITC2007_2   component_1:732,component_2:2,component_3:4,component_4:2,component_6:3,component_8:8,component_9:2,component_10:8,component_12:2,component_13:6,component_15:3,component_18:4,component_19:2,component_20:2,component_21:4,component_22:2,component_24:3,component_26:3,component_29:13,component_31:2,component_33:2,component_34:3,component_36:6,component_38:3,component_43:6,component_44:4,component_47:2,component_52:3,component_53:2,component_55:4,component_56:2
+
+ITC2007_3   component_1:875,component_2:4,component_6:3,component_7:3,component_8:6,component_9:5,component_11:4,component_12:2,component_13:2,component_15:6,component_23:3,component_30:2
+
+ITC2007_4   component_1:273
+
+ITC2007_5   component_1:825,component_2:5,component_3:4,component_4:10,component_6:3,component_7:4,component_8:5,component_9:3,component_10:6,component_11:6,component_12:21,component_13:7,component_14:4,component_16:5,component_17:5,component_18:3,component_19:3,component_20:5,component_21:4,component_22:11,component_23:4,component_24:3,component_25:6,component_26:3,component_28:4,component_29:3,component_30:7,component_32:2,component_34:2,component_35:6,component_36:2,component_37:2,component_39:3,component_40:2,component_42:5,component_49:2,component_53:7
+
+ITC2007_6   component_1:3,component_2:193,component_3:4,component_4:27,component_6:7,component_7:3
+
+ITC2007_7
+component_1:2,   component_2:921
+,component_3:4,
+component_5:8,
+component_8:9,
+component_9:7,
+component_11:2,
+component_13:4,
+component_14:25,
+component_15:4,
+component_16:3,
+component_20:3,
+component_26:8,
+component_38:2,
+component_41:2,component_43:2,component_55:5,component_61:4,component_63:4,component_64:3,component_65:4,component_70:2,component_75:2,component_76:3,component_83:2,component_84:2
+
+ITC2007_8   component_1:576,component_4:2,component_6:3,component_17:4
+
+ITC2007_9   component_2:150,component_4:5,component_6:5,component_7:5
+
+ITC2007_10  
+component_1:7,
+component_2:4,
+component_3:22,
+component_4:4,
+component_5:5,
+component_6:5,
+component_7:6,
+component_8:2,
+component_9:6,
+component_11:6,
+component_12:16,
+component_13:2,
+component_14:4,
+component_15:5,
+component_16:9,
+component_17:11,
+component_18:23,
+component_19:12,
+component_20:16,
+component_21:17,
+component_22:16,
+component_23:15
+
+ITC2007_11  
+component_1:875,
+component_2:4,
+component_6:3,
+component_7:3,
+component_8:6,
+component_9:5,
+component_11:4,
+component_12:2,
+component_13:2,
+component_15:6,
+component_23:3,
+component_30:2
+
+ITC2007_12  component_1:69,component_5:5
