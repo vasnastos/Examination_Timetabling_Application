@@ -21,7 +21,7 @@
 | yor83             |[Github_UETT_Solutions/yor83.sol](Github_UETT_Solutions/yor83.sol)|
 
 
-*Αποτελέσματα-**ITC datasets**
+* Αποτελέσματα-**ITC datasets**
 |  Αρχείο δεδομένων | Αρχείο αποτελέσματος                                                       |
 |-------------------|----------------------------------------------------------------------------|
 | ITC2007_1         |[Github_UETT_Solutions/ITC2007_1.sol](Github_UETT_solutions/ITC2007_1.sol)  |
