@@ -20,3 +20,22 @@
 | ute92             |[Github_UETT_Solutions/ute92.sol](Github_UETT_Solutions/ute92.sol)|
 | yor83             |[Github_UETT_Solutions/yor83.sol](Github_UETT_Solutions/yor83.sol)|
 
+
+*Αποτελέσματα-**ITC datasets**
+|  Αρχείο δεδομένων | Αρχείο αποτελέσματος                                                       |
+|-------------------|----------------------------------------------------------------------------|
+| ITC2007_1         |[Github_UETT_Solutions/ITC2007_1.sol](Github_UETT_solutions/ITC2007_1.sol)  |
+| ITC2007_2         |[Github_UETT_Solutions/ITC2007_2.sol](Github_UETT_solutions/ITC2007_2.sol)  |
+| ITC2007_3         |[Github_UETT_Solutions/ITC2007_3.sol](Github_UETT_solutions/ITC2007_3.sol)  |
+| ITC2007_4         |[Github_UETT_Solutions/ITC2007_4.sol](Github_UETT_solutions/ITC2007_4.sol)  |
+| ITC2007_5         |[Github_UETT_Solutions/ITC2007_5.sol](Github_UETT_solutions/ITC2007_5.sol)  |
+| ITC2007_6         |[Github_UETT_Solutions/ITC2007_6.sol](Github_UETT_solutions/ITC2007_6.sol)  |
+| ITC2007_7         |[Github_UETT_Solutions/ITC2007_7.sol](Github_UETT_solutions/ITC2007_7.sol)  |
+| ITC2007_8         |[Github_UETT_Solutions/ITC2007_8.sol](Github_UETT_solutions/ITC2007_8.sol)  |
+| ITC2007_9         |[Github_UETT_Solutions/ITC2007_9.sol](Github_UETT_solutions/ITC2007_9.sol)  |
+| ITC2007_10        |[Github_UETT_Solutions/ITC2007_10.sol](Github_UETT_solutions/ITC2007_10.sol)|
+| ITC2007_11        |[Github_UETT_Solutions/ITC2007_11.sol](Github_UETT_solutions/ITC2007_11.sol)|
+| ITC2007_12        |[Github_UETT_Solutions/ITC2007_12.sol](Github_UETT_solutions/ITC2007_12.sol)|
+
+
+
